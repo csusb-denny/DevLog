@@ -1,0 +1,31 @@
+version: '3.9'
+
+services:
+  db:
+    image: postgres:16
+    container_name: devlog_db
+    restart: always
+    environment:
+      POSTGRES_USER: devlog_user
+      POSTGRES_PASSWORD: devlog_pass
+      POSTGRES_DB: devlog_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  backend:
+    build: ./backend
+    container_name: devlog_backend
+    restart: always
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgresql+psycopg2://devlog_user:devlog_pass@db:5432/devlog_db
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+
+volumes:
+  pgdata:
