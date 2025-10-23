@@ -5,3 +5,10 @@ psycopg2-binary
 python-dotenv
 alembic
 pydantic[email]>=2.0
+python-jose[cryptography]
+passlib>=1.7.4
+ruff
+black
+pytest
+httpx
+pytest-asyncio
