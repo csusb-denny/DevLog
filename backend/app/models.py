@@ -1,25 +1,56 @@
-#models.py - SQL Alchemy models for Users and Projects that define database structure
-from sqlalchemy import Column, Integer, String, Text, ForeignKey, DateTime, func
+from sqlalchemy import Column, Integer, String, Text, ForeignKey
 from sqlalchemy.orm import relationship
 from .database import Base
-#User table model
+
 class User(Base):
-    __tablename__ = "users" #actual table name
-    #columns 
+    __tablename__ = "users"
     id = Column(Integer, primary_key=True, index=True)
-    username = Column(String(50), unique=True, nullable=False)
-    email = Column(String(100), unique=True, nullable=False)
-    password = Column(String(128), nullable=False)
-    #relationship to projects
-    projects = relationship("Project", back_populates="owner")
-#project table model
+    username = Column(String(150), unique=True, nullable=False, index=True)
+    email = Column(String(255), unique=True, nullable=False)
+    password = Column(String(255), nullable=False)
+
+    # one-to-many: User → Projects
+    projects = relationship(
+        "Project",
+        back_populates="owner",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )
+
 class Project(Base):
-    __tablename__ = "projects" #actual table name
-    #columns
+    __tablename__ = "projects"
     id = Column(Integer, primary_key=True, index=True)
-    title = Column(String(100))
+    title = Column(String(255), nullable=False)
     description = Column(Text)
-    created_at = Column(DateTime, server_default=func.now())
-    #foreign key to link to user
-    owner_id = Column(Integer, ForeignKey("users.id"))
+
+    # FK to users.id  ← this is what was missing at DB level
+    owner_id = Column(
+        Integer,
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+
     owner = relationship("User", back_populates="projects")
+
+    # one-to-many: Project → Logs
+    logs = relationship(
+        "Log",
+        back_populates="project",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )
+
+class Log(Base):
+    __tablename__ = "logs"
+    id = Column(Integer, primary_key=True, index=True)
+
+    project_id = Column(
+        Integer,
+        ForeignKey("projects.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    message = Column(Text)
+
+    project = relationship("Project", back_populates="logs")

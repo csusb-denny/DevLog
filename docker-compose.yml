@@ -13,15 +13,23 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U devlog_user -d devlog_db"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
 
   backend:
     build: ./backend
     container_name: devlog_backend
     restart: always
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     environment:
       DATABASE_URL: postgresql+psycopg2://devlog_user:devlog_pass@db:5432/devlog_db
+      JWT_SECRET: supersecret_dev_key
+      JWT_MINUTES: "60"
     ports:
       - "8000:8000"
     volumes:

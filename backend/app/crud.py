@@ -4,7 +4,7 @@ from . import models, schemas
 
 # ---- USERS ----
 def create_user(db: Session, user: schemas.UserCreate):
-    new_user = models.User(username=user.username, email=user.email, password=user.password)
+    new_user = models.User(username=user.username, email=user.email, password=pwd.hash(user.password))
     db.add(new_user)
     db.commit()
     db.refresh(new_user)

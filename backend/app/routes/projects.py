@@ -3,6 +3,8 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from .. import schemas, crud
 from ..database import SessionLocal
+from ..models import Project, Log   # ← explicit import, no `models.` prefix
+from .. import models
 
 router = APIRouter(prefix="/projects", tags=["Projects"])
 # Dependency to get DB session
@@ -34,15 +36,20 @@ def update_project(project_id: int, project: schemas.ProjectCreate, db: Session 
     db.commit()
     db.refresh(obj)
     return obj
-#Delete a Project DELETE /projects/{project_id}
+
 @router.delete("/{project_id}", status_code=204)
 def delete_project(project_id: int, db: Session = Depends(get_db)):
-    obj = db.query(models.Project).get(project_id)
-    if not obj:
+    proj = db.get(models.Project, project_id)   # works on SQLAlchemy 2.x
+    if not proj:
         raise HTTPException(404, "Project not found")
-    db.delete(obj)
+
+    # remove dependent logs to avoid FK violations
+    db.query(models.Log).filter(models.Log.project_id == project_id).delete(synchronize_session=False)
+
+    db.delete(proj)
     db.commit()
     return
+
 #List Projects with search and pagination GET /projects
 @router.get("/", response_model=list[schemas.Project])
 def list_projects(
