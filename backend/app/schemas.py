@@ -1,52 +1,54 @@
-#schemas.py Pydantic models for request and response validation
-from pydantic import BaseModel, EmailStr, ConfigDict
-from typing import Optional, List
+# app/schemas.py
 from datetime import datetime
-from datetime import date
+from pydantic import BaseModel, ConfigDict
+from typing import Optional
 
-#Base Schema for Project Definitions
+# ------------------------
+# USER SCHEMAS
+# ------------------------
+class UserBase(BaseModel):
+    username: str
+    email: str
+
+class UserCreate(UserBase):
+    password: str
+
+class UserOut(UserBase):
+    id: int
+    model_config = ConfigDict(from_attributes=True)
+
+# ------------------------
+# PROJECT SCHEMAS
+# ------------------------
 class ProjectBase(BaseModel):
     title: str
-    description: str | None = None
-#Schema for creating new Project
+    description: Optional[str] = None
+
 class ProjectCreate(ProjectBase):
     pass
-#Schema for Project with additional fields
-class Project(ProjectBase):
-    id: int
-    created_at: datetime
-    model_config = ConfigDict(from_attributes=True)
+
 class ProjectUpdate(BaseModel):
-    title: str | None = None
-    description: str | None = None    
+    title: Optional[str] = None
+    description: Optional[str] = None
 
 class ProjectOut(ProjectBase):
     id: int
     owner_id: int
-    created_at: datetime | None = None   # <- optional
-    updated_at: datetime | None = None   # <- optional
-    model_config = ConfigDict(from_attributes=True)  # <- Pydantic v2: replaces orm_mode=True
-#Base Schema for User Definitionsa
-class UserBase(BaseModel):
-    username: str
-    email: EmailStr
-#Schema for creating new User
-class UserCreate(UserBase):
-    password: str
-#Schema for User with additional fields
-class User(UserBase):
-    id: int
-    projects: List[Project] = []
+    # keep timestamps optional unless your DB has them
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
     model_config = ConfigDict(from_attributes=True)
 
+# ------------------------
+# LOG SCHEMAS (if you expose logs)
+# ------------------------
 class LogBase(BaseModel):
-    project_id: int
-    content: str
+    message: str
 
 class LogCreate(LogBase):
-    pass
+    project_id: int
 
-class Log(LogBase):
+class LogOut(LogBase):
     id: int
-    date: date
-    model_config = ConfigDict(from_attributes=True)  # Pydantic v2
+    project_id: int
+    model_config = ConfigDict(from_attributes=True)

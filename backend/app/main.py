@@ -1,7 +1,7 @@
 #main.py - Entry point for the FastAPI application
 from fastapi import FastAPI
 from .database import Base, engine
-from .routes import users, projects, logs, auth
+from .routes import users, projects, auth
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.requests import Request
@@ -12,7 +12,6 @@ Base.metadata.create_all(bind=engine)
 #Includes API route modules
 app.include_router(users.router)
 app.include_router(projects.router)
-app.include_router(logs.router)
 app.include_router(auth.router)          # ← include router
 #Configure CORS middleware
 app.add_middleware(
